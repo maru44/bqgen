@@ -10,7 +10,7 @@ var tagReg *regexp.Regexp
 
 func init() {
 	var err error
-	tagReg, err = regexp.Compile(`"[a-zA-Z0-9-_,]+"`)
+	tagReg, err = regexp.Compile(`bigquery:"[a-zA-Z0-9-_,]+"`)
 	if err != nil {
 		panic(err)
 	}

@@ -1,6 +1,6 @@
 package tests
 
-//go:generate go run github.com/maru44/bqlgen/generator
+//go:generate go run github.com/maru44/bqgen/generator
 
 type Person struct {
 	Name  string `bigquery:"name"`

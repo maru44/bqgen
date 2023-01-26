@@ -29,8 +29,8 @@ func loadPackages() ([]*packages.Package, error) {
 	return pkgs, err
 }
 
-func (p *parser) parseFile(file *ast.File) []*structDefine {
-	var structs []*structDefine
+func (p *parser) parseFile(file *ast.File) []*schema {
+	var schemas []*schema
 	for _, decl := range file.Decls {
 		switch it := decl.(type) {
 		case *ast.GenDecl:
@@ -39,64 +39,55 @@ func (p *parser) parseFile(file *ast.File) []*structDefine {
 
 				switch ts := spec.(type) {
 				case *ast.TypeSpec:
-					sd := &structDefine{
+					sc := &schema{
 						Name: ts.Name.Name,
 					}
 
 					if st, ok := ts.Type.(*ast.StructType); ok {
-						p.parseStruct(st, sd)
+						p.parseStruct(st, sc)
 					}
-					structs = append(structs, sd)
+					schemas = append(schemas, sc)
 				}
 			}
 		}
 	}
 
-	return structs
+	return schemas
 }
 
-func (p *parser) parseStruct(st *ast.StructType, def *structDefine) {
-	var isBq bool
+func (p *parser) parseStruct(st *ast.StructType, sc *schema) {
 	for _, f := range st.Fields.List {
 		if f.Tag == nil {
 			continue
 		}
-		tags := strings.Split(f.Tag.Value, " ")
 
-		for _, t := range tags {
-			if strings.HasPrefix(t, "`bigquery") {
-				tagB := tagReg.Find([]byte(t))
-				tag := strings.Trim(string(tagB), `"`)
-				fmt.Println(tag)
-
-				tagSlice := strings.Split(tag, ",")
-
-				var required bool = true
-				var nullble bool
-				if len(tagSlice) > 2 {
-					if tagSlice[1] == "nullable" {
-						nullble = true
-						required = false
-					}
-				}
-
-				ff := &field{
-					name:     f.Names[0].Name,
-					bqName:   tagSlice[0],
-					required: required,
-					nullable: nullble,
-				}
-				if typ, ok := f.Type.(*ast.Ident); ok {
-					ff.typ = typ.Name
-				}
-				def.Fields = append(def.Fields, ff)
-				isBq = true
-				break
-			}
-		}
-		if !isBq {
+		tagBq := tagReg.Find([]byte(f.Tag.Value))
+		if len(tagBq) == 0 {
 			continue
 		}
+		tag := strings.TrimLeft(string(tagBq), `bigquery:`)
+		tag = strings.Trim(tag, `"`)
+		tagSlice := strings.Split(tag, ",")
+
+		var required bool = true
+		var nullble bool
+		if len(tagSlice) > 2 {
+			if tagSlice[1] == "nullable" {
+				nullble = true
+				required = false
+			}
+		}
+
+		ff := &field{
+			name:     f.Names[0].Name,
+			bqName:   tagSlice[0],
+			required: required,
+			nullable: nullble,
+		}
+		if typ, ok := f.Type.(*ast.Ident); ok {
+			ff.typ = typ.Name
+		}
+		sc.Fields = append(sc.Fields, ff)
 	}
 }
 

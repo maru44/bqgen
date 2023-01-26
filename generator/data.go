@@ -1,6 +1,6 @@
 package main
 
-type structDefine struct {
+type schema struct {
 	Name   string
 	Fields []*field
 }
