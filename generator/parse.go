@@ -103,7 +103,7 @@ func (p *parser) parseFields(f *ast.Field) (*field, bool) {
 			case *ast.SelectorExpr:
 				out.Typ = x.Sel.Name
 				// out.underlyingType = strings.TrimLeft(p.pkg.TypesInfo.TypeOf(typ).String(), "*")
-				out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+				out.UnderlyingType = underlyingType(p.pkg.TypesInfo.TypeOf(typ).String())
 			}
 		case *ast.Ident:
 			out.Typ, out.UnderlyingType = p.parseIdent(elt)
@@ -118,7 +118,7 @@ func (p *parser) parseFields(f *ast.Field) (*field, bool) {
 			out.Typ, out.UnderlyingType = p.parseIdent(x)
 		case *ast.SelectorExpr:
 			out.Typ = x.Sel.Name
-			out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+			out.UnderlyingType = underlyingType(p.pkg.TypesInfo.TypeOf(typ).String())
 		}
 	case *ast.SelectorExpr:
 		// if x, ok := typ.X.(*ast.Ident); ok {
@@ -128,7 +128,7 @@ func (p *parser) parseFields(f *ast.Field) (*field, bool) {
 		// }
 		// out.typ += "." + typ.Sel.Name
 		out.Typ = typ.Sel.Name
-		out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+		out.UnderlyingType = underlyingType(p.pkg.TypesInfo.TypeOf(typ).String())
 	}
 	if _, ok := bqTypeWithoutZeroValueByUnderlyingType[out.UnderlyingType]; ok && !out.Nullable {
 		out.Required = true
@@ -136,22 +136,22 @@ func (p *parser) parseFields(f *ast.Field) (*field, bool) {
 	return out, true
 }
 
-func (p *parser) parseIdent(ide *ast.Ident) (string, string) {
+func (p *parser) parseIdent(ide *ast.Ident) (string, underlyingType) {
 	if ide.Obj == nil {
-		return ide.Name, p.pkg.TypesInfo.TypeOf(ide).String()
+		return ide.Name, underlyingType(p.pkg.TypesInfo.TypeOf(ide).String())
 	}
 	if ide.Obj.Decl != nil {
 		if spec, ok := ide.Obj.Decl.(*ast.TypeSpec); ok {
 			switch typ := spec.Type.(type) {
 			case *ast.Ident:
 				// enum like
-				return ide.Name, p.pkg.TypesInfo.TypeOf(typ).String()
+				return ide.Name, underlyingType(p.pkg.TypesInfo.TypeOf(typ).String())
 			case *ast.StructType:
 				// pass
 			}
 		}
 	}
-	return ide.Obj.Name, p.pkg.TypesInfo.TypeOf(ide).String()
+	return ide.Obj.Name, underlyingType(p.pkg.TypesInfo.TypeOf(ide).String())
 }
 
 func (p *parser) getFileName(f *ast.Field) (name string, nullable, skip bool) {

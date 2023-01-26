@@ -10,9 +10,9 @@ import (
 
 var Person = &core.Schema{
 	Schema: bigquery.Schema{
-		{Name: "name", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "age", Type: bigquery.IntegerFieldType, Required: true, Repeated: false},
-		{Name: "hobby", Type: bigquery.StringFieldType, Required: true, Repeated: false},
+		{Name: "Name", Type: bigquery.StringFieldType, Required: true},
+		{Name: "Age", Type: bigquery.IntegerFieldType, Required: true},
+		{Name: "Hobby", Type: bigquery.StringFieldType, Required: true},
 	},
 	TypeByFieldName: map[string]bigquery.FieldType{
 		"name":  bigquery.StringFieldType,
@@ -33,14 +33,14 @@ var PersonColumns = struct {
 
 var Animal = &core.Schema{
 	Schema: bigquery.Schema{
-		{Name: "id", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "kind", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "goods", Type: bigquery.RecordFieldType, Required: false, Repeated: true, Schema: Good.Schema},
-		{Name: "good_ptr", Type: bigquery.RecordFieldType, Required: false, Repeated: false, Schema: Good.Schema},
-		{Name: "good_str", Type: bigquery.RecordFieldType, Required: false, Repeated: false, Schema: Good.Schema},
-		{Name: "strPtr", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "tim", Type: bigquery.TimeFieldType, Required: true, Repeated: false},
-		{Name: "timPtr", Type: bigquery.TimeFieldType, Required: false, Repeated: false},
+		{Name: "Id", Type: bigquery.StringFieldType, Required: true},
+		{Name: "Kind", Type: bigquery.StringFieldType, Required: true},
+		{Name: "Goods", Type: bigquery.RecordFieldType, Repeated: true, Schema: Good.Schema},
+		{Name: "GoodPtr", Type: bigquery.RecordFieldType, Schema: Good.Schema},
+		{Name: "GoodStr", Type: bigquery.RecordFieldType, Schema: Good.Schema},
+		{Name: "StrPtr", Type: bigquery.StringFieldType, Required: true},
+		{Name: "Tim", Type: bigquery.TimeFieldType, Required: true},
+		{Name: "TimPtr", Type: bigquery.TimeFieldType},
 	},
 	TypeByFieldName: map[string]bigquery.FieldType{
 		"id":       bigquery.StringFieldType,
@@ -76,9 +76,9 @@ var AnimalColumns = struct {
 
 var Good = &core.Schema{
 	Schema: bigquery.Schema{
-		{Name: "name", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "sample", Type: bigquery.StringFieldType, Required: true, Repeated: false},
-		{Name: "samplePtr", Type: bigquery.StringFieldType, Required: true, Repeated: false},
+		{Name: "Name", Type: bigquery.StringFieldType, Required: true},
+		{Name: "Sample", Type: bigquery.StringFieldType, Required: true},
+		{Name: "SamplePtr", Type: bigquery.StringFieldType, Required: true},
 	},
 	TypeByFieldName: map[string]bigquery.FieldType{
 		"name":      bigquery.StringFieldType,

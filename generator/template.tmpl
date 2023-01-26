@@ -12,7 +12,7 @@ import (
 var {{ $s.Name }} = &core.Schema{
     Schema: bigquery.Schema{
         {{ range $f := $s.Fields -}}
-            {Name: "{{ $f.BqName }}", Type: {{ $f.UnderlyingType | bqType }}, Required: {{ $f.Required }}, Repeated: {{ $f.Array }} {{ $f | schemaRelation }} }, 
+            { {{ $f | parseField }} },
         {{ end -}}
     },
     TypeByFieldName: map[string]bigquery.FieldType{

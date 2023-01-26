@@ -1,6 +1,8 @@
 package main
 
 type (
+	underlyingType string
+
 	schema struct {
 		Name   string
 		Fields []*field
@@ -10,7 +12,7 @@ type (
 		Name           string
 		BqName         string
 		Typ            string
-		UnderlyingType string
+		UnderlyingType underlyingType
 		Array          bool
 		Ptr            bool
 		Required       bool

@@ -16,9 +16,9 @@ var tmpl string
 
 func render(data []*schema) ([]byte, error) {
 	funcMap := map[string]any{
-		"bqType":         bqType,
-		"camel":          camel,
-		"schemaRelation": schemaRelation,
+		"bqType":     bqTypeStr,
+		"camel":      camel,
+		"parseField": parseField,
 	}
 	t, err := template.New("bqgen").Funcs(funcMap).Parse(tmpl)
 	if err != nil {
@@ -43,11 +43,37 @@ func render(data []*schema) ([]byte, error) {
 	return out, nil
 }
 
-func bqType(underlyingType string) string {
-	if bt, ok := bqTypeByUnderlyingType[underlyingType]; ok {
-		return parseType(bt)
+func bqTypeStr(ut underlyingType) string {
+	return parseType(bqType(ut))
+}
+
+func bqType(ut underlyingType) bigquery.FieldType {
+	if bt, ok := bqTypeByUnderlyingType[ut]; ok {
+		return bt
 	}
-	return parseType(bigquery.RecordFieldType)
+	return bigquery.RecordFieldType
+}
+
+func camel(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return strcase.ToCamel(s)
+}
+
+func parseField(f *field) string {
+	var req, repeat, schema string
+	str := fmt.Sprintf(`Name: "%s", Type: %s`, camel(f.BqName), bqTypeStr(f.UnderlyingType))
+	if f.Required {
+		req = ", Required: true"
+	}
+	if f.Array {
+		repeat = ", Repeated: true"
+	}
+	if bqType(f.UnderlyingType) == bigquery.RecordFieldType {
+		schema = fmt.Sprintf(", Schema: %s.Schema", camel(f.Typ))
+	}
+	return str + req + repeat + schema
 }
 
 func parseType(s bigquery.FieldType) string {
@@ -84,18 +110,4 @@ func parseType(s bigquery.FieldType) string {
 		return "bigquery.JSONFieldType"
 	}
 	panic(fmt.Sprintf("no such type: %s", s))
-}
-
-func camel(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	return strcase.ToCamel(s)
-}
-
-func schemaRelation(f *field) string {
-	if _, ok := bqTypeByUnderlyingType[f.UnderlyingType]; ok {
-		return ""
-	}
-	return fmt.Sprintf(", Schema: %s.Schema", camel(f.Typ))
 }

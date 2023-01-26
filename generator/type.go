@@ -4,7 +4,7 @@ import (
 	"cloud.google.com/go/bigquery"
 )
 
-var bqTypeWithoutZeroValueByUnderlyingType = map[string]bigquery.FieldType{
+var bqTypeWithoutZeroValueByUnderlyingType = map[underlyingType]bigquery.FieldType{
 	"string":         bigquery.StringFieldType,
 	"int":            bigquery.IntegerFieldType,
 	"int8":           bigquery.IntegerFieldType,
@@ -25,7 +25,7 @@ var bqTypeWithoutZeroValueByUnderlyingType = map[string]bigquery.FieldType{
 	"*big.Rat":       bigquery.NumericFieldType,
 }
 
-var bqTypeByUnderlyingType = map[string]bigquery.FieldType{
+var bqTypeByUnderlyingType = map[underlyingType]bigquery.FieldType{
 	"string":         bigquery.StringFieldType,
 	"int":            bigquery.IntegerFieldType,
 	"int8":           bigquery.IntegerFieldType,
