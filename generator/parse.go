@@ -5,22 +5,12 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/k0kubun/pp"
 	"golang.org/x/tools/go/packages"
 )
 
 type parser struct {
 	pkg *packages.Package
 }
-
-// var primitiveType = map[string]struct{}{
-// 	"string": {},
-// 	"int": {},
-// 	"int8": {},
-// 	"int16": {},
-// 	"int64": {},
-// 	""
-// }
 
 func newParser(pkg *packages.Package) *parser {
 	return &parser{
@@ -53,10 +43,15 @@ func (p *parser) parseFile(file *ast.File) []*schema {
 						Name: ts.Name.Name,
 					}
 
+					// pp.Println(ts.Type)
+
 					if st, ok := ts.Type.(*ast.StructType); ok {
+						// if len(st.Fields.List) == 0 {
+						// 	continue
+						// }
 						p.parseStruct(st, sc)
+						schemas = append(schemas, sc)
 					}
-					schemas = append(schemas, sc)
 				}
 			}
 		}
@@ -67,25 +62,11 @@ func (p *parser) parseFile(file *ast.File) []*schema {
 
 func (p *parser) parseStruct(st *ast.StructType, sc *schema) {
 	for _, f := range st.Fields.List {
-		bqName, required, nullable, skip := p.getFileName(f)
-		if skip {
+		ff, ok := p.parseFields(f)
+		if !ok {
 			continue
 		}
 
-		ff := &field{
-			name:     f.Names[0].Name,
-			bqName:   bqName,
-			required: required,
-			nullable: nullable,
-		}
-		pp.Println(f.Type)
-		if typ, ok := f.Type.(*ast.Ident); ok {
-			ff.typ = typ.Name
-			underlyingType := p.pkg.TypesInfo.TypeOf(typ).String()
-			if ut, ok := bqTypeByUnderlyingType[underlyingType]; ok {
-				ff.bqType = string(ut)
-			}
-		}
 		sc.Fields = append(sc.Fields, ff)
 	}
 }
@@ -95,8 +76,85 @@ func (p *parser) isStringLikeType(ts *ast.TypeSpec) bool {
 	return t.Underlying().String() == "string"
 }
 
-func (p *parser) getFileName(f *ast.Field) (name string, required, nullable, skip bool) {
-	required = true
+func (p *parser) parseFields(f *ast.Field) (*field, bool) {
+	// pp.Println(f) // TODO del debug
+	bqName, nullable, skip := p.getFileName(f)
+	if skip {
+		return nil, false
+	}
+
+	out := &field{
+		Name:     f.Names[0].Name,
+		BqName:   bqName,
+		Nullable: nullable,
+	}
+
+	switch typ := f.Type.(type) {
+	case *ast.Ident:
+		out.Typ, out.UnderlyingType = p.parseIdent(typ)
+	case *ast.ArrayType:
+		out.Array = true
+		switch elt := typ.Elt.(type) {
+		case *ast.StarExpr:
+			out.Ptr = true
+			switch x := elt.X.(type) {
+			case *ast.Ident:
+				out.Typ, out.UnderlyingType = p.parseIdent(x)
+			case *ast.SelectorExpr:
+				out.Typ = x.Sel.Name
+				// out.underlyingType = strings.TrimLeft(p.pkg.TypesInfo.TypeOf(typ).String(), "*")
+				out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+			}
+		case *ast.Ident:
+			out.Typ, out.UnderlyingType = p.parseIdent(elt)
+		}
+	case *ast.StarExpr:
+		out.Ptr = true
+		if x, ok := typ.X.(*ast.Ident); ok {
+			out.Typ, out.UnderlyingType = p.parseIdent(x)
+		}
+		switch x := typ.X.(type) {
+		case *ast.Ident:
+			out.Typ, out.UnderlyingType = p.parseIdent(x)
+		case *ast.SelectorExpr:
+			out.Typ = x.Sel.Name
+			out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+		}
+	case *ast.SelectorExpr:
+		// if x, ok := typ.X.(*ast.Ident); ok {
+		// 	if x.Obj == nil {
+		// 		out.typ = x.Name
+		// 	}
+		// }
+		// out.typ += "." + typ.Sel.Name
+		out.Typ = typ.Sel.Name
+		out.UnderlyingType = p.pkg.TypesInfo.TypeOf(typ).String()
+	}
+	if _, ok := bqTypeWithoutZeroValueByUnderlyingType[out.UnderlyingType]; ok && !out.Nullable {
+		out.Required = true
+	}
+	return out, true
+}
+
+func (p *parser) parseIdent(ide *ast.Ident) (string, string) {
+	if ide.Obj == nil {
+		return ide.Name, p.pkg.TypesInfo.TypeOf(ide).String()
+	}
+	if ide.Obj.Decl != nil {
+		if spec, ok := ide.Obj.Decl.(*ast.TypeSpec); ok {
+			switch typ := spec.Type.(type) {
+			case *ast.Ident:
+				// enum like
+				return ide.Name, p.pkg.TypesInfo.TypeOf(typ).String()
+			case *ast.StructType:
+				// pass
+			}
+		}
+	}
+	return ide.Obj.Name, p.pkg.TypesInfo.TypeOf(ide).String()
+}
+
+func (p *parser) getFileName(f *ast.Field) (name string, nullable, skip bool) {
 	if f.Tag == nil {
 		if len([]rune(f.Names[0].Name)) > 1 {
 			name = strings.ToLower(string(f.Names[0].Name[0])) + f.Names[0].Name[1:]
@@ -123,7 +181,6 @@ func (p *parser) getFileName(f *ast.Field) (name string, required, nullable, ski
 	if len(tagSlice) > 2 {
 		if tagSlice[1] == "nullable" {
 			nullable = true
-			required = false
 		}
 	}
 

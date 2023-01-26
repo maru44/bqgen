@@ -6,8 +6,8 @@ import (
 
 type (
 	Schema struct {
-		Schema    bigquery.Schema
-		TypeByKey map[string]bigquery.FieldType
+		Schema          bigquery.Schema
+		TypeByFieldName map[string]bigquery.FieldType
 	}
 )
 
@@ -20,6 +20,6 @@ func (s *Schema) Headers() []string {
 }
 
 func (s *Schema) Type(fieldName string) (bigquery.FieldType, bool) {
-	f, ok := s.TypeByKey[fieldName]
+	f, ok := s.TypeByFieldName[fieldName]
 	return f, ok
 }

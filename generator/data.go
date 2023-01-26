@@ -1,16 +1,20 @@
 package main
 
-type schema struct {
-	Name   string
-	Fields []*field
-}
+type (
+	schema struct {
+		Name   string
+		Fields []*field
+	}
 
-type field struct {
-	name     string
-	bqName   string
-	typ      string
-	required bool
-	nullable bool
-	bqType   string // TODO fix
-
-}
+	field struct {
+		Name           string
+		BqName         string
+		Typ            string
+		UnderlyingType string
+		Array          bool
+		Ptr            bool
+		Required       bool
+		Nullable       bool
+		// Schema         *schema // if type is record
+	}
+)

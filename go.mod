@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	cloud.google.com/go/bigquery v1.45.0
+	github.com/iancoleman/strcase v0.2.0
 	github.com/k0kubun/pp v3.0.1+incompatible
 	golang.org/x/tools v0.5.0
 )
