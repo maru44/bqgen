@@ -5,11 +5,19 @@ package tests
 type Person struct {
 	Name  string `bigquery:"name"`
 	Age   int    `bigquery:"age"`
-	Sex   string
+	Sex   string `bigquery:"-"`
 	Hobby string `bigquery:"hobby,nullable"`
 }
 
 type Animal struct {
-	ID   string `bigquery:"id"`
-	Kind string `bigquery:"kind"`
+	ID      string `bigquery:"id"`
+	Kind    string `bigquery:"kind"`
+	Goods   []*Good
+	Good    *Good
+	GoodStr Good
+	strPtr  *string
+}
+
+type Good struct {
+	Name string
 }

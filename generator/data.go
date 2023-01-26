@@ -11,4 +11,6 @@ type field struct {
 	typ      string
 	required bool
 	nullable bool
+	bqType   string // TODO fix
+
 }
