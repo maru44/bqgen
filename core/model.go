@@ -5,13 +5,16 @@ import (
 )
 
 type (
-	Schema struct {
+	Table struct {
+		// ProjectID       string
+		ID              string
+		DatasetID       string
 		Schema          bigquery.Schema
 		TypeByFieldName map[string]bigquery.FieldType
 	}
 )
 
-func (s *Schema) Headers() []string {
+func (s *Table) Fields() []string {
 	out := make([]string, len(s.Schema))
 	for i, f := range s.Schema {
 		out[i] = f.Name
@@ -19,7 +22,7 @@ func (s *Schema) Headers() []string {
 	return out
 }
 
-func (s *Schema) Type(fieldName string) (bigquery.FieldType, bool) {
+func (s *Table) Type(fieldName string) (bigquery.FieldType, bool) {
 	f, ok := s.TypeByFieldName[fieldName]
 	return f, ok
 }
