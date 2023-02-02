@@ -167,9 +167,3 @@ func parseType(s bigquery.FieldType) string {
 // 	}
 // 	return false
 // }
-
-var sample = bigquery.Schema{
-	{
-		PolicyTags: &bigquery.PolicyTagList{Names: []string{}},
-	},
-}
