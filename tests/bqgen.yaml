@@ -1,7 +1,7 @@
 - id: test_dataset
   project_id: sample_project
   tables:
-    - table_id: sample_table_01
+    - id: sample_table_01
       fields:
         - name: id
           required: true

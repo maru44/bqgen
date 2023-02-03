@@ -2,52 +2,61 @@ package main
 
 import (
 	"os"
-	"path/filepath"
 
-	"github.com/mitchellh/mapstructure"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
-func loadBqDataFromConfig() ([]dataset, error) {
-	con, err := loadConfig()
+func loadFromYAML() ([]dataset, error) {
+	// TODO fix get by args
+	f, err := os.Open("tests/bqgen.yaml")
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
+
 	var out []dataset
-	if err := mapstructure.Decode(con, &out); err != nil {
+	if err := yaml.NewDecoder(f).Decode(&out); err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func loadConfig() (map[string]any, error) {
-	configHome := os.Getenv("XDG_CONFIG_HOME")
-	homePath := os.Getenv("HOME")
-	wd, err := os.Getwd()
-	if err != nil {
-		wd = "."
-	}
+// func loadBqDataFromConfig() ([]dataset, error) {
+// 	con, err := loadConfig()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	var out []dataset
+// 	if err := mapstructure.Decode(con, &out); err != nil {
+// 		return nil, err
+// 	}
+// 	return out, nil
+// }
 
-	configPaths := []string{wd}
-	if len(configHome) > 0 {
-		configPaths = append(configPaths, filepath.Join(configHome, "scheman"))
-	} else {
-		configPaths = append(configPaths, filepath.Join(homePath, ".config/scheman"))
-	}
+// func loadConfig() (map[string]any, error) {
+// 	// configHome := os.Getenv("XDG_CONFIG_HOME")
+// 	// homePath := os.Getenv("HOME")
+// 	// wd, err := os.Getwd()
+// 	// if err != nil {
+// 	// 	wd = "."
+// 	// }
 
-	for _, p := range configPaths {
-		viper.AddConfigPath(p)
-	}
+// 	// configPaths := []string{wd}
+// 	// if len(configHome) > 0 {
+// 	// 	configPaths = append(configPaths, filepath.Join(configHome, "scheman"))
+// 	// } else {
+// 	// 	configPaths = append(configPaths, filepath.Join(homePath, ".config/scheman"))
+// 	// }
 
-	// Ignore errors here, fallback to other validation methods.
-	// Users can use environment variables if a config is not found.
-	_ = viper.ReadInConfig()
+// 	// for _, p := range configPaths {
+// 	// 	viper.AddConfigPath(p)
+// 	// }
 
-	viper.AddConfigPath(".")
-	viper.SetConfigFile("bqgen")
-	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
-	}
+// 	viper.AddConfigPath(".")
+// 	viper.SetConfigFile("bqgen")
+// 	if err := viper.ReadInConfig(); err != nil {
+// 		// fmt.Println(err)
+// 	}
 
-	return viper.AllSettings(), nil
-}
+// 	return viper.AllSettings(), nil
+// }

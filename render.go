@@ -16,9 +16,9 @@ import (
 //go:embed template.tmpl
 var tmpl string
 
-func render(data table) ([]byte, error) {
+func render(data *table) ([]byte, error) {
 	funcMap := map[string]any{
-		// "bqType": bqTypeStr,
+		"gt":    toGoTypeFromBigqueryFieldType,
 		"pt":    parseType,
 		"pf":    parseField,
 		"camel": camel,
@@ -69,7 +69,7 @@ func parseField(f *field) string {
 	elements = append(elements, fmt.Sprintf(`Name: "%s", Type: %s`, f.Name, parseType(f.Type)))
 
 	if f.Description != "" {
-		elements = append(elements, fmt.Sprintf("Description: %s", f.Description))
+		elements = append(elements, fmt.Sprintf(`Description: "%s"`, f.Description))
 	}
 	if f.Required {
 		elements = append(elements, "Required: true")
@@ -101,7 +101,7 @@ func parseField(f *field) string {
 		elements = append(elements, fmt.Sprintf("Scale: %d", f.Scale))
 	}
 	if f.DefaultValueExpression != "" {
-		elements = append(elements, fmt.Sprintf("DefaultValueExpression: %s", f.DefaultValueExpression))
+		elements = append(elements, fmt.Sprintf(`DefaultValueExpression: "%s"`, f.DefaultValueExpression))
 	}
 
 	return strings.Join(elements, ", ")
@@ -140,30 +140,41 @@ func parseType(s bigquery.FieldType) string {
 		return "bigquery.BooleanFieldType"
 	case bigquery.JSONFieldType:
 		return "bigquery.JSONFieldType"
-	default:
-		return string(s)
 	}
-	// panic(fmt.Sprintf("no such type: %s", s))
+	panic(fmt.Sprintf("no such type: %s", s))
 }
 
-// func bqOriginType(in string) bool {
-// 	switch in {
-// 	case "bigquery.StringFieldType":
-// 	case "bigquery.BytesFieldType":
-// 	case "bigquery.IntegerFieldType":
-// 	case "bigquery.FloatFieldType":
-// 	case "bigquery.TimestampFieldType":
-// 	case "bigquery.RecordFieldType":
-// 	case "bigquery.DateFieldType":
-// 	case "bigquery.TimeFieldType":
-// 	case "bigquery.DateTimeFieldType":
-// 	case "bigquery.NumericFieldType":
-// 	case "bigquery.BigNumericFieldType":
-// 	case "bigquery.GeographyFieldType":
-// 	case "bigquery.IntervalFieldType":
-// 	case "bigquery.BooleanFieldType":
-// 	case "bigquery.JSONFieldType":
-// 		return true
-// 	}
-// 	return false
-// }
+func toGoTypeFromBigqueryFieldType(s bigquery.FieldType) string {
+	switch s {
+	case bigquery.StringFieldType:
+		return "string"
+	case bigquery.BytesFieldType:
+		return "[]byte"
+	case bigquery.IntegerFieldType, "INT64":
+		return "int64"
+	case bigquery.FloatFieldType, "FLOAT64":
+		return "float64"
+	case bigquery.TimestampFieldType:
+		return "time.Time"
+	case bigquery.RecordFieldType, "STRUCT":
+		panic(fmt.Sprintf("must not reach here: %s", s))
+	case bigquery.DateFieldType:
+		return "civil.Date"
+	case bigquery.TimeFieldType:
+		return "civil.Time"
+	case bigquery.DateTimeFieldType:
+		return "civil.DateTime"
+	case bigquery.NumericFieldType, "DECIMAL",
+		bigquery.BigNumericFieldType, "BIGDECIMAL":
+		return "*big.Rat"
+	case bigquery.GeographyFieldType:
+		return "string"
+	case bigquery.IntervalFieldType:
+		return "time.Duration"
+	case bigquery.BooleanFieldType, "BOOL":
+		return "bool"
+	case bigquery.JSONFieldType:
+		return "types.JSON"
+	}
+	panic(fmt.Sprintf("no such type: %s", s))
+}

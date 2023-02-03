@@ -1,6 +1,8 @@
 package main
 
-import "cloud.google.com/go/bigquery"
+import (
+	"cloud.google.com/go/bigquery"
+)
 
 type (
 	underlyingType string
@@ -20,11 +22,11 @@ type (
 	dataset struct {
 		ID        string
 		ProjectID string
-		Tables    []table
+		Tables    []*table
 	}
 
 	table struct {
-		TableID   string
+		ID        string
 		DatasetID string
 		ProjectID string
 		Fields    []*field
