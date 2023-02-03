@@ -52,7 +52,7 @@ func loadDefinitionFile(name string) ([]core.DatasetInput, error) {
 	var out []core.DatasetInput
 	ext := filepath.Ext(name)
 	switch ext {
-	case "yaml":
+	case ".yaml":
 		if err := yaml.Unmarshal(b, &out); err != nil {
 			return nil, err
 		}

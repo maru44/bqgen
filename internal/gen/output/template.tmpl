@@ -11,7 +11,7 @@ import (
 type {{ $.Data.ID | camel }} struct {
     {{ range $f := $.Data.Fields -}}
         {{ if and (ne $f.Type "RECORD") (ne $f.Type "STRUCT") -}}
-            {{ $f.Name | camel }} {{ $f.Type | gt }} `json:"{{ $f.Name }}" toml:"{{ $f.Name }}" yaml:"{{ $f.Name }}"`
+            {{ $f.Name | camel }} {{ $f.Type | gt }} `json:"{{ $f.Name }}" toml:"{{ $f.Name }}" yaml:"{{ $f.Name }}" bigquery:"{{ $f.Name }}"`
         {{ end -}}
     {{ end -}}
 }

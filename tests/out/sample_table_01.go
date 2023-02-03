@@ -9,8 +9,8 @@ import (
 )
 
 type SampleTable01 struct {
-	Id   string `json:"id" toml:"id" yaml:"id"`
-	Name string `json:"name" toml:"name" yaml:"name"`
+	Id   string `json:"id" toml:"id" yaml:"id" bigquery:"id"`
+	Name string `json:"name" toml:"name" yaml:"name" bigquery:"name"`
 }
 
 var SampleTable01Schema = &model.Table{
