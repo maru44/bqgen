@@ -1,38 +1,22 @@
-package main
+package core
 
-import (
-	"cloud.google.com/go/bigquery"
-)
+import "cloud.google.com/go/bigquery"
 
 type (
-	underlyingType string
-
-	// field struct {
-	// 	Name           string
-	// 	BqName         string
-	// 	Typ            string
-	// 	UnderlyingType underlyingType
-	// 	Array          bool
-	// 	Ptr            bool
-	// 	Required       bool
-	// 	Nullable       bool
-	// 	// Schema         *schema // if type is record
-	// }
-
-	dataset struct {
+	DatasetInput struct {
 		ID        string
 		ProjectID string
-		Tables    []*table
+		Tables    []*TableInput
 	}
 
-	table struct {
+	TableInput struct {
 		ID        string
 		DatasetID string
 		ProjectID string
-		Fields    []*field
+		Fields    []*FieldInput
 	}
 
-	field struct {
+	FieldInput struct {
 		Name                   string
 		Description            string
 		Repeated               bool
@@ -47,7 +31,7 @@ type (
 	}
 )
 
-func (d *dataset) setDatasetIDToTable() {
+func (d *DatasetInput) SetDatasetIDToTable() {
 	for _, t := range d.Tables {
 		t.DatasetID = d.ID
 		t.ProjectID = d.ProjectID

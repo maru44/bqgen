@@ -1,0 +1,15 @@
+- id: test_dataset
+  project_id: sample_project
+  tables:
+    - id: sample_table_01
+      fields:
+        - name: id
+          required: true
+          type: STRING
+          policy_tags: [id, name]
+          max_length: 60
+        - name: name
+          description: this is name
+          type: STRING
+          scale: 4
+          default_value_expression: NAMAE
