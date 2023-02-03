@@ -2,6 +2,7 @@ package core
 
 import "cloud.google.com/go/bigquery"
 
+// TODO add validate
 type (
 	DatasetInput struct {
 		ID        string

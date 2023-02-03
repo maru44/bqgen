@@ -2,21 +2,36 @@ package input
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
-	"strings"
+	"path/filepath"
 
 	"github.com/maru44/bqgen/internal/core"
 	"github.com/pelletier/go-toml/v2"
 	"gopkg.in/yaml.v3"
 )
 
-// TODO impl
-func LoadDefinition() {}
+var acceptableExt = map[string]struct{}{
+	".yaml": {},
+	".toml": {},
+	".json": {},
+}
 
-// TODO load dir
+func loadDefinitionDir(name string) ([][]core.DatasetInput, error) {
+	dirs, err := os.ReadDir(name)
+	if err != nil {
+		return nil, err
+	}
+	var fileNames []string
+	for _, d := range dirs {
+		if _, ok := acceptableExt[filepath.Ext(d.Name())]; ok {
+			fileNames = append(fileNames, d.Name())
+		}
+	}
+	return loadDefinitionFiles(fileNames...)
+}
 
-// TODO private
-func LoadDefinitionFiles(names ...string) ([][]core.DatasetInput, error) {
+func loadDefinitionFiles(names ...string) ([][]core.DatasetInput, error) {
 	out := make([][]core.DatasetInput, len(names))
 	for i, n := range names {
 		var err error
@@ -28,7 +43,6 @@ func LoadDefinitionFiles(names ...string) ([][]core.DatasetInput, error) {
 	return out, nil
 }
 
-// TODO other mimetype
 func loadDefinitionFile(name string) ([]core.DatasetInput, error) {
 	b, err := os.ReadFile(name)
 	if err != nil {
@@ -36,21 +50,22 @@ func loadDefinitionFile(name string) ([]core.DatasetInput, error) {
 	}
 
 	var out []core.DatasetInput
-	switch {
-	case strings.HasSuffix(name, ".yaml"):
+	ext := filepath.Ext(name)
+	switch ext {
+	case "yaml":
 		if err := yaml.Unmarshal(b, &out); err != nil {
 			return nil, err
 		}
-	case strings.HasSuffix(name, ".toml"):
+	case ".toml":
 		if err := toml.Unmarshal(b, &out); err != nil {
 			return nil, err
 		}
-	case strings.HasSuffix(name, ".json"):
+	case ".json":
 		if err := json.Unmarshal(b, &out); err != nil {
 			return nil, err
 		}
 	default:
-		// TODO
+		return nil, fmt.Errorf("invalid file ext: %s", ext)
 	}
 
 	return out, nil

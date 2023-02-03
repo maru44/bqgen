@@ -16,17 +16,12 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to load config: ", err)
 	}
-	if err := cfg.Validate(ctx); err != nil {
-		log.Fatal("invalid config:", err)
-	}
 
-	// TODO fix func
-	data, err := input.LoadDefinitionFiles(cfg.Files...)
+	data, err := cfg.LoadDefinitionsWithValidate(ctx)
 	if err != nil {
 		log.Fatal("failed to load: ", err)
 	}
 
-	// TODO fix get by params
 	modelPkgDir, err := filepath.Abs(cfg.Output)
 	if err != nil {
 		log.Fatal("failed to get model package dir: ", err)

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jellydator/validation"
+	"github.com/maru44/bqgen/internal/core"
 	"github.com/spf13/viper"
 )
 
@@ -21,6 +22,25 @@ type Config struct {
 	TfDir string `json:"tfdir" yaml:"tfdir" toml:"tfdir"`
 }
 
+func (c *Config) LoadDefinitionsWithValidate(ctx context.Context) ([][]core.DatasetInput, error) {
+	if err := c.Validate(ctx); err != nil {
+		return nil, err
+	}
+
+	if len(c.Files) == 0 {
+		return loadDefinitionDir(c.Dir)
+	}
+	return loadDefinitionFiles(c.Files...)
+}
+
+func (c *Config) Validate(ctx context.Context) error {
+	return validation.ValidateStructWithContext(ctx, c,
+		validation.Field(&c.Output, validation.Required),
+		validation.Field(&c.Pkg, validation.Required),
+		validation.Field(&c.Dir, validation.When(len(c.Files) == 0, validation.Required)),
+	)
+}
+
 func LoadConfig() (*Config, error) {
 	viper.SetConfigName("bqgen")
 	viper.AddConfigPath(".")
@@ -33,12 +53,4 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 	return cfg, nil
-}
-
-func (c *Config) Validate(ctx context.Context) error {
-	return validation.ValidateStructWithContext(ctx, c,
-		validation.Field(&c.Output, validation.Required),
-		validation.Field(&c.Pkg, validation.Required),
-		validation.Field(&c.Dir, validation.When(len(c.Files) == 0, validation.Required)),
-	)
 }
